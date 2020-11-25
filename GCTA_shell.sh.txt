@@ -1,0 +1,38 @@
+
+#!/bin/bash
+#PBS -l walltime=100:00:00
+
+# Code for univariate & bivariate GCTA analysis
+# 13/03/2019
+
+#change permissions
+#set directory: cd /panfs/panasas01/sscm/cb18669/Mini-project/GCTA/gcta_1.92.0beta3
+#chmod a+x gcta64
+#enable output to write chmod 777 /panfs/panasas01/sscm/cb18669/Mini-project/Output
+
+
+# grm & pc files always point here:
+grm_dir=/panfs/panasas01/shared/alspac/studies/latest/alspac/genetic/variants/arrays/gwas/directly_genotyped/combined/released/2015-11-02/data/derived/kinships/data
+pc_dir=/panfs/panasas01/shared/alspac/studies/latest/alspac/genetic/variants/arrays/gwas/directly_genotyped/combined/released/2015-11-02/data/derived/principal_components/plink/children
+
+# these file pathways go wherever you want the data: 
+gcta_dir=/panfs/panasas01/sscm/cb18669/Mini-project/GCTA/gcta_1.92.0beta3/gcta64
+pheno_dir=/panfs/panasas01/sscm/cb18669/Mini-project/Phenotype
+out_dir=/panfs/panasas01/sscm/cb18669/Mini-project/Output
+
+
+# unadjusted heritability analysis
+${gcta_dir} --reml --grm ${grm_dir} --pheno ${pheno_dir}/Bias_S.pheno --mpheno 1 --out ${out_dir}/Output_unadjusted --thread-num 8; sleep 1
+
+
+# Covariate adjusted heritability analyses
+${gcta_dir} --reml --grm ${grm_dir} --pheno ${pheno_dir}/Bias_S.pheno --mpheno 1 --out ${out_dir}/Output_adjusted --thread-num 8 --qcovar ${pc_dir}/data.eigenvec; sleep 1
+
+
+# Genetic correlations
+#${gcta_dir} --reml-bivar NUMBER NUMBER --reml-bivar-lrt-rg 0 --grm ${grm_dir} --pheno ${pheno_dir}/Bias_S.pheno o --out ${out_dir}/Output_correlations_unadjusted --thread-num 8; sleep 1
+
+
+#${gcta_dir} --reml-bivar NUMBER NUMBER --reml-bivar-lrt-rg 0 --grm ${grm_dir} --pheno ${pheno_dir}/Bias_S.pheno  --out ${out_dir}/Output_correlations_adjusted --thread-num 8 --qcovar ${pc_dir}/data.eigenvec; sleep 1
+
+
