@@ -1,0 +1,32 @@
+
+#!/bin/bash
+#PBS -l walltime=100:00:00
+
+# Code for univariate & bivariate GCTA analysis
+# 13/03/2019
+
+
+grm_dir=/path/to/derived/kinship/data
+pc_dir=/path/to/principle/components/
+
+# these file pathways go wherever you want the data: 
+gcta_dir=/path/for/gcta/output
+pheno_dir=path/for/phenotype/output
+out_dir=/out/directory
+
+
+# unadjusted heritability analysis
+${gcta_dir} --reml --grm ${grm_dir} --pheno ${pheno_dir}/Bias_S.pheno --mpheno 1 --out ${out_dir}/Output_unadjusted --thread-num 8; sleep 1
+
+
+# Covariate adjusted heritability analyses
+${gcta_dir} --reml --grm ${grm_dir} --pheno ${pheno_dir}/Bias_S.pheno --mpheno 1 --out ${out_dir}/Output_adjusted --thread-num 8 --qcovar ${pc_dir}/data.eigenvec; sleep 1
+
+
+# Genetic correlations
+#${gcta_dir} --reml-bivar NUMBER NUMBER --reml-bivar-lrt-rg 0 --grm ${grm_dir} --pheno ${pheno_dir}/Bias_S.pheno o --out ${out_dir}/Output_correlations_unadjusted --thread-num 8; sleep 1
+
+
+#${gcta_dir} --reml-bivar NUMBER NUMBER --reml-bivar-lrt-rg 0 --grm ${grm_dir} --pheno ${pheno_dir}/Bias_S.pheno  --out ${out_dir}/Output_correlations_adjusted --thread-num 8 --qcovar ${pc_dir}/data.eigenvec; sleep 1
+
+
