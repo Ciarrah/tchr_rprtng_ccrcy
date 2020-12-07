@@ -326,11 +326,17 @@ write.csv(d,"KS3_rgrssn_ll.csv")
 # Association between teacher rating and achievement, table 2                        #
 ######################################################################################
 
-Modelfit=with(imputed_dataset_1,lm(AvTA_KS2~ks4_cvap2aps))
+long=mice::complete(imputed_dataset_1, "long", include = TRUE)
+long$AvTA_KS3.S=with(long,(AvTA_KS3-mean(na.omit(AvTA_KS3))/sd(na.omit(AvTA_KS3))))
+imp.itt=as.mids(long)
+Modelfit=with(imp.itt,lm(ks4_cvap3aps~AvTA_KS3.S))
 pool.r.squared(Modelfit,adjusted=T)
-round(summary(pool(Modelfit), conf.int = TRUE), 2)
+summary(pool(Modelfit), conf.int = TRUE)
 
-Modelfit=with(imputed_dataset_1,lm(AvTA_KS3~ks4_cvap3aps))
+long=mice::complete(imputed_dataset_1, "long", include = TRUE)
+long$AvTA_KS2.S=with(long,(AvTA_KS2-mean(na.omit(AvTA_KS2))/sd(na.omit(AvTA_KS2))))
+imp.itt=as.mids(long)
+Modelfit=with(imp.itt,lm(ks4_cvap2aps~AvTA_KS2.S))
 pool.r.squared(Modelfit,adjusted=T)
-round(summary(pool(Modelfit), conf.int = TRUE), 2)
+summary(pool(Modelfit), conf.int = TRUE)
 
