@@ -1,0 +1,241 @@
+# data cleaning 
+
+# sex, month of birth non white ethnicity, non white ethnic background
+
+library(readr)
+
+'%!in%'=function(x,y)!('%in%'(x,y))
+
+data_raw=read_csv("/Volumes/MRC-IEU-research/projects/ieu2/p1/015/working/data/data_raw_190402.csv", 
+                  col_types = cols(k2_maine = col_integer(), 
+                                   k2_mainm = col_integer(), k2_mains = col_integer()))
+
+colnames(data_raw)=c("preg_iden", "birth_ord", "sex","month_birth","ks2_main_test_E","ks2_main_test_M","ks2_main_test_S",
+                     "ks2_TA_E","ks2_TA_M","ks2_TA_S","ks3_TA_E","ks3_TA_M","ks3_TA_S","ks2_Av","ks3_Av","ks4_Av",
+                     "ks3_main_E","ks3_main_M","ks3_main_S","ks3_engtst","ks3_mattest","ks3_scitest","ks2_attain_eng",
+                     "ks2_attain_mat","ks2_attain_sci","pgs_gwas","pgs_all","SEN","ks2_SDQ","nmbr_ppls","tchr_sx",
+                     "lngth_srv","mnth_dlvry","mthr_age","parity","mthr_HE","mthr_scl_clss","fthr_scl_clss","ethncty","ptnrs_ethnc_grp",
+                     "ethnc_bckgrnd","incm_wk","av_inc","ln(av_inc_)")
+
+data_raw$sex=as.factor(data_raw$sex)
+length(which(data_raw$sex%!in%levels(data_raw$sex)[1:2]))
+data_raw=data_raw[which(data_raw$sex%in%levels(data_raw$sex)[1:2]),]
+
+
+data_raw$month_birth=as.numeric(data_raw$month_birth)
+length(which(data_raw$month_birth%!in%c(1:12)))
+data_raw=data_raw[which(data_raw$month_birth%in%c(1:12)),]
+
+
+data_raw$ethncty=as.factor(data_raw$ethncty)
+length(which(data_raw$ethncty%!in%levels(data_raw$ethncty)[10]))
+data_raw=data_raw[which(data_raw$ethncty%in%levels(data_raw$ethncty)[10]),]
+
+data_raw$ethnc_bckgrnd=as.factor(data_raw$ethnc_bckgrnd)
+length(which(data_raw$ethnc_bckgrnd%!in%"White"))
+data_raw=data_raw[which(data_raw$ethnc_bckgrnd%in%"White"),]
+
+#  SEP, weekly household income, mat HE
+
+#### using highest SEP
+
+is.ordered(data_raw$fthr_scl_clss)
+is.ordered(data_raw$mthr_scl_clss)
+table(data_raw$mthr_scl_clss)
+table(data_raw$fthr_scl_clss)
+
+data_raw$mthr_scl_clss[which(data_raw$mthr_scl_clss=="Armed forces")]="II"
+data_raw$fthr_scl_clss[which(data_raw$fthr_scl_clss=="Armed forces")]="II"
+data_raw[,c("fthr_scl_clss","mthr_scl_clss")]=droplevels(data_raw[,c("fthr_scl_clss","mthr_scl_clss")])
+table(data_raw$mthr_scl_clss)
+table(data_raw$fthr_scl_clss)
+
+# set "Missing" to NA
+
+data_raw$mthr_scl_clss=as.factor(data_raw$mthr_scl_clss)
+data_raw$fthr_scl_clss=as.factor(data_raw$fthr_scl_clss)
+data_raw$mthr_scl_clss[which(data_raw$mthr_scl_clss=="Missing")]=NA
+data_raw$fthr_scl_clss[which(data_raw$fthr_scl_clss=="Missing")]=NA
+data_raw[,c("fthr_scl_clss","mthr_scl_clss")]=droplevels(data_raw[,c("fthr_scl_clss","mthr_scl_clss")])
+table(data_raw$mthr_scl_clss)
+table(data_raw$fthr_scl_clss)
+
+data_raw$fthr_scl_clss=ordered(data_raw$fthr_scl_clss,levels=c("I","II","III (non-manual)","III (manual)","IV","V"))
+data_raw$mthr_scl_clss=ordered(data_raw$mthr_scl_clss,levels=c("I","II","III (non-manual)","III (manual)","IV","V"))
+
+data_raw$scl_clss=NA
+for (i in 1:nrow(data_raw))
+{
+  if (is.na(data_raw$mthr_scl_clss[i])&is.na(data_raw$fthr_scl_clss[i]))
+  {
+    # if both parents are missing social class, set social class to NA
+    data_raw$scl_clss[i]=NA
+  }
+  else if (is.na(data_raw$mthr_scl_clss[i])&(is.na(data_raw$fthr_scl_clss[i])==FALSE))
+  {
+    data_raw$scl_clss[i]=data_raw$fthr_scl_clss[i]
+  }
+  else if (is.na(data_raw$fthr_scl_clss[i])&(is.na(data_raw$mthr_scl_clss[i])==FALSE))
+  {
+    data_raw$scl_clss[i]=data_raw$mthr_scl_clss[i]
+  }
+  else
+  {
+    data_raw$scl_clss[i]=pmin(data_raw$mthr_scl_clss[i],data_raw$fthr_scl_clss[i])
+  }
+}
+data_raw$scl_clss=factor(data_raw$scl_clss,labels=c("I","II","III (non-manual)","III (manual)","IV","V"))
+table(data_raw$scl_clss)
+
+length(which(is.na(data_raw$scl_clss)))
+data_raw=data_raw[which(!is.na(data_raw$scl_clss)),]
+
+data_raw$incm_wk=as.factor(data_raw$incm_wk)
+data_raw$incm_wk[which(data_raw$incm_wk==-1)]=NA
+summary(data_raw$incm_wk)
+length(which(data_raw$incm_wk%!in%levels(data_raw$incm_wk)[2:6]))
+data_raw=data_raw[which(data_raw$incm_wk%in%levels(data_raw$incm_wk)[2:6]),]
+
+data_raw$mthr_HE=as.factor(data_raw$mthr_HE)
+length(which(data_raw$mthr_HE%!in%levels(data_raw$mthr_HE)))
+length(which(data_raw$mthr_HE%in%levels(data_raw$mthr_HE)[4]))
+data_raw=data_raw[which(data_raw$mthr_HE%in%levels(data_raw$mthr_HE)[c(1:3,5:6)]),]
+
+data_raw$SEN.F=NA
+data_raw$SEN=as.factor(data_raw$SEN)
+for (i in 1:nrow(data_raw))
+{
+  if (data_raw$SEN[i]%!in%levels(data_raw$SEN))
+  {
+    data_raw$SEN.F[i]="Not statemented"
+  }
+  else if (data_raw$SEN[i]==levels(data_raw$SEN)[1])
+  {
+    data_raw$SEN.F[i]="Not statemented"
+  }
+  else if (data_raw$SEN[i]==levels(data_raw$SEN)[2])
+  {
+    data_raw$SEN.F[i]="Has a statement"
+  }
+  else if (data_raw$SEN[i]==levels(data_raw$SEN)[3])
+  {
+    data_raw$SEN.F[i]="Not statemented"
+  }
+  else if (data_raw$SEN[i]==levels(data_raw$SEN)[4])
+  {
+    data_raw$SEN.F[i]="Not statemented"
+  }
+  else if (data_raw$SEN[i]==levels(data_raw$SEN)[5])
+  {
+    data_raw$SEN.F[i]="Not statemented"
+  }
+  else if (data_raw$SEN[i]==levels(data_raw$SEN)[6])
+  {
+    data_raw$SEN.F[i]="Not statemented"
+  }
+  else if (data_raw$SEN[i]==levels(data_raw$SEN)[7])
+  {
+    data_raw$SEN.F[i]="Not statemented"
+  }
+  else if (data_raw$SEN[i]==levels(data_raw$SEN)[8])
+  {
+    data_raw$SEN.F[i]="Not statemented"
+  }
+}
+data_raw$SEN.F=as.factor(data_raw$SEN.F)
+
+
+data_raw$mnth_dlvry=as.integer(data_raw$mnth_dlvry)
+for (i in 1:nrow(data_raw))
+{
+  if (data_raw$mnth_dlvry[i]%in%c(1:8))
+  {
+    data_raw$mnth_dlvry[i]=data_raw$mnth_dlvry[i]+4
+  }
+  else if (data_raw$mnth_dlvry[i]%in%c(9:12))
+  {
+    data_raw$mnth_dlvry[i]=data_raw$mnth_dlvry[i]-8
+  }
+  else 
+    data_raw$mnth_dlvry[i]=data_raw$mnth_dlvry[i]
+}
+
+# pgs data
+
+length(which(is.na(data_raw$pgs_gwas)))
+length(na.omit(data_raw$pgs_gwas))
+data_raw=data_raw[complete.cases(data_raw$pgs_gwas),]
+
+# teacher 
+
+derivation
+
+data_raw$ks2_TA_E[which(data_raw$ks2_TA_E=="W")]=0
+data_raw$ks2_TA_M[which(data_raw$ks2_TA_M=="W")]=0
+data_raw$ks2_TA_S[which(data_raw$ks2_TA_S=="W")]=0
+data_raw$ks3_TA_E[which(data_raw$ks3_TA_E=="W")]=0
+data_raw$ks3_TA_M[which(data_raw$ks3_TA_M=="W")]=0
+data_raw$ks3_TA_S[which(data_raw$ks3_TA_S=="W")]=0
+
+# transform class size 
+data_raw$nmbr_ppls=as.integer(data_raw$nmbr_ppls)
+data_raw$nmbr_ppls=(data_raw$nmbr_ppls)/10
+
+data_raw.ks2=data_raw[which(data_raw$ks2_TA_E%in%c(0:6)&data_raw$ks2_TA_S%in%c(0:6)&data_raw$ks2_TA_M%in%c(0:6)),]
+data_raw.ks2=data_raw.ks2[which(data_raw.ks2$ks2_Av>0),]
+
+data_raw.ks3=data_raw[which(data_raw$ks3_TA_E%in%c(0:8)&data_raw$ks3_TA_S%in%c(0:8)&data_raw$ks3_TA_M%in%c(0:8)),]
+data_raw.ks3=data_raw.ks3[which(data_raw.ks3$ks3_Av>0),]
+
+data_raw.ks2[,8]=as.numeric(unlist(data_raw.ks2[,8]))
+data_raw.ks2[,9]=as.numeric(unlist(data_raw.ks2[,9]))
+data_raw.ks2[,10]=as.numeric(unlist(data_raw.ks2[,10]))
+
+data_raw.ks3[,11]=as.numeric(unlist(data_raw.ks3[,11]))
+data_raw.ks3[,12]=as.numeric(unlist(data_raw.ks3[,12]))
+data_raw.ks3[,13]=as.numeric(unlist(data_raw.ks3[,13]))
+
+data_raw.ks2$AvTA=rowMeans(data_raw.ks2[,8:10],na.rm=TRUE)
+data_raw.ks3$AvTA=rowMeans(data_raw.ks3[,11:13],na.rm=TRUE)
+
+a=c(0,3,4.7,6.4,8.27,10.13,12,14,16,18,20,22,24,26,28,30,32,34)
+
+d=c((0:17)/3)
+
+b=c(0,3,4.7,6.4,8.27,10.13,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48)
+
+e=c((0:24)/3)
+
+for(i in 1:nrow(data_raw.ks2))
+{
+  c=data_raw.ks2$AvTA[i]
+  f=match(c,d)
+  data_raw.ks2$AvTA[i]=a[f]
+}
+
+for(i in 1:nrow(data_raw.ks3))
+{
+  c=data_raw.ks3$AvTA[i]
+  f=match(c,e)
+  data_raw.ks3$AvTA[i]=b[f]
+}
+
+# cumulative frequency tables
+
+cbind( Freq=table(data_raw.ks3$ks3_TA_E), Cumul=cumsum(table(data_raw.ks3$ks3_TA_E)), Percent=round(prop.table(table(data_raw.ks3$ks3_TA_E)),3)*100)
+cbind( Freq=table(data_raw.ks3$ks3_TA_S), Cumul=cumsum(table(data_raw.ks3$ks3_TA_S)), Percent=round(prop.table(table(data_raw.ks3$ks3_TA_S)),3)*100)
+cbind( Freq=table(data_raw.ks3$ks3_TA_M), Cumul=cumsum(table(data_raw.ks3$ks3_TA_M)), Percent=round(prop.table(table(data_raw.ks3$ks3_TA_M)),3)*100)
+
+###########KS2 additional variables
+
+data_raw.ks2$tchr_sx=as.factor(data_raw.ks2$tchr_sx)
+table(data_raw.ks2$tchr_sx)
+data_raw.ks2=data_raw.ks2[-which(data_raw.ks2$tchr_sx%!in%levels(data_raw.ks2$tchr_sx)[1:2]),]
+
+data_raw.ks2$lngth_srv=as.factor(data_raw.ks2$lngth_srv)
+table(data_raw.ks2$lngth_srv)
+data_raw.ks2=data_raw.ks2[-which(data_raw.ks2$lngth_srv%!in%levels(data_raw.ks2$lngth_srv)[1:4]),]
+
+data_raw.ks2$nmbr_ppls=as.integer(data_raw.ks2$nmbr_ppls)
+length(na.omit(data_raw.ks2$nmbr_ppls))
+data_raw.ks2=data_raw.ks2[complete.cases(data_raw.ks2$nmbr_ppls),]
