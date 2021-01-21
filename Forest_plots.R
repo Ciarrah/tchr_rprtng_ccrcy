@@ -1,146 +1,77 @@
-## Forest plots
+setwd("/Volumes/MRC-IEU-research/projects/ieu2/p1/015/working/data/CB_2021/")
 
-setwd("//rdsfcifs.acrc.bris.ac.uk/MRC-IEU-research/projects/ieu2/p1/015/working/data/CB")
+library(readxl);library(forestplot);library(checkmate)
 
-install.packages("forestplot")
-library(forestplot) ; library(readxl) ; library(checkmate)
+KS2=read_excel("KS2_forrest_plot_input.xlsx")
+KS3=read_excel("KS3_forrest_plot_input.xlsx")
 
-## ks2
+## KS2
 
-Mdata=read_excel("C:/Users/cb18669/OneDrive - University of Bristol/MyFiles-Migrated/Documents/Mini-project week 26+/coefficients ks2.xlsx")
-Mdata=as.data.frame(Mdata)
-labels=c("Degree","Degree", "Alevel","Alevel","CSE","CSE","O-level","O-level","Vocational","Vocational","Female","Female","Male","Male","I","I","II","II","III manual","III manual","III non-manual","III non-manual","IV","IV","V","V","Not statemented","Not statemented","Has a statement","Has a statement","Month of birth","Month of birth","Over £400","Over £400", "Less than £100", "Less than £100","£100-199","£100-199","£200-299","£200-299","£300-399","£300-399","Female (teacher)","Male (teacher)","Over 10 years exp.","Less than 1 year exp.","1-2 years exp.","3-9 years exp.","Class size")
-lbl=as.vector(c("Degree", "Alevel","CSE","O-level","Vocational","Female","Male","I","II","III manual","III non-manual","IV","V","Not statemented","Has a statement","Month of birth","Over £400", "Less than £100","£100-199","£200-299","£300-399","Female (teacher)", "Male (teacher)","Over 10 years exp.","Less than 1 year exp.","1-2 years exp.","3-9 years exp.","Class size"))
-Mdata.CC=Mdata$Mean[seq(1,56,2)] #CC
-a=paste0(Mdata.CC)
-a=c("0.00","0.00","0.01","-0.05","0.04","0.00","-0.06","0.00","0.02","0.00","0.04","0.05","-0.42","0.00","-0.69","-0.01","0.00","-0.11","0.00","-0.02","0.01","0.00","0.08","0.00","-0.11","-0.16","-0.06","0.01" )
-Mdata.IMP=Mdata$Mean[seq(0,56,2)]  #IMP
-b=paste0(Mdata.IMP)
-b=c("0.00","-0.06","-0.03","-0.03","0.00","0.00","0.03","0.00","-0.02","0.04","-0.02","-0.13","-0.07","0.00","0.00","0.00","0.00","0.04","0.04","-0.02","0.06","0.00","0.02","0.00","0.02","0.02","0.02","0.00")
-Mdata=transform(Mdata, "95% CI"=paste(Lower, Upper, sep="-"))
-e=paste0(Mdata$X95..CI)
-e=c("(0.00,0.00)","(0.00,0.00)","(-0.10,0.11)","(-0.16,0.04)","(-0.11,0.14)","(-0.13,0.06)","(-0.15,0.05)","(-0.16,0.09)",
-"(-0.10,0.17)", "(-0.11,0.09)","(0.00,0.00)","(0.00,0.00)","(-0.12,0.00)", "(-0.02,0.09)","(0.00,0.00)","(0.00,0.00)",
-"(-0.08,0.12)","(-0.12,0.07)","(-0.10,0.11)","(-0.06,0.13)","(-0.08,0.16)","(-0.15,0.11)","(-0.17,0.28)","(-0.33,0.06)", 
-"(-1.30,0.46)","(-0.52,0.38)","(0.00,0.00)","(0.00,0.00)","(-1.00,0.38)","(-0.20,0.20)","(-0.02,0.00)","(0.00,0.00)",
-"(0.00-0.00)","(0.00,0.00)","(-0.28,0.05)","(-0.04,0.12)","(-0.11,0.10)","(-0.03,0.10)","(-0.11,0.06)","(-0.09,0.06)",
-"(-0.07,0.10)","(-0.06,0.18)","(0.00,0.00)","(0.00,0.00)","(-0.02,0.18)","(-0.05,0.09)","(0.00,0.00)","(0.00,0.00)",
-"(-0.44,0.22)","(-0.01,0.04)","(-0.39,0.07)","(-0.02,0.06)","(-0.15,0.03)","(-0.02,0.06)","(0.00,0.02)","(-0.00,0.01)")
-e.I=e[seq(0,56,2)]
+KS2=as.data.frame(KS2)
+labels=as.vector(KS2$Variable)[c(T,F)]
+KS2.CC=KS2$Mean[seq(1,56,2)]
+a=as.vector(paste0(KS2.CC))
+KS2.IMP=KS2$Mean[seq(0,56,2)]  #IMP
+b=as.vector(paste0(KS2.IMP))
+KS2=transform(KS2, "95% CI"=paste0("(",paste(Lower, Upper, sep=", "),paste0(")")))
+e=KS2$X95..CI
 e.C=e[seq(1,56,2)]
+e.I=e[seq(0,56,2)]
 
-tabletext=cbind(c("Variable",lbl),c("Imputed est.",b),c("95% CI",e.I),c("C c est.",a),c("95% CI",e.C))
-png("high_res_ks2.png",width=5000,height=2500,res=300)
-forestplot(tabletext,hrzl_lines = gpar(col="#444444"), fn.ci_norm = c(fpDrawNormalCI, fpDrawCircleCI),
-           legend = c("Complete case","Imputed"),
-           mean = cbind(c(NA,Mdata$Mean[Mdata$Analyses == "Complete case"]), 
-                        c(NA,Mdata$Mean[Mdata$Analyses == "Imputed"])),
-           lower = cbind(c(NA,Mdata$Lower[Mdata$Analyses == "Complete case"]), 
-                         c(NA,Mdata$Lower[Mdata$Analyses == "Imputed"])),
-           upper = cbind(c(NA,Mdata$Upper[Mdata$Analyses == "Complete case"]), 
-                         c(NA,Mdata$Upper[Mdata$Analyses == "Imputed"])),
-           col=fpColors(box=c("turquoise2", "red2"),line=c("turquoise2", "red2"),
-                        zero=c("black")),cex = 1,
-           boxsize = 0.25,
-           line.margin = 0.25,
-           xlab = "Standardised effect estimate (95% CI)")
-dev.off()
+tabletext=cbind(c("Variable",labels),c("Imputed est.",b),c("95% CI",e.I),c("C c est.",a),c("95% CI",e.C))
 
-
-##ks3
-
-Mdata=read_excel("O:/Documents/Mini-project week 26+/coefficients_ks3.xlsx")
-Mdata=as.data.frame(Mdata)
-labels=c("Degree","Degree", "Alevel","Alevel","CSE","CSE","O-level","O-level","Vocational","Vocational","Female","Female","Male","Male","I","I","II","II","III manual","III manual","III non-manual","III non-manual","IV","IV","V","V","Not statemented","Not statemented","Has a statement","Has a statement","Month of birth","Month of birth","Over £400","Over £400", "Less than £100", "Less than £100","£100-199","£100-199","£200-299","£200-299","£300-399","£300-399")
-lbl=as.vector(c("Degree", "Alevel","CSE","O-level","Vocational","Female","Male","I","II","III manual","III non-manual","IV","V","Not statemented","Has a statement","Month of birth","Over £400", "Less than £100","£100-199","£200-299","£300-399"))
-Mdata.CC=Mdata$Mean[seq(1,42,2)] #CC
-a=paste0(Mdata.CC)
-a=c("0.00","-0.06","-0.01","0.00","0.03","0.00","0.04","0.00","-0.07","-0.06","-0.02","-0.01","0.07","0.00","0.06","0.01","0.00","-0.06","0.01","0.06","0.10")
-Mdata.IMP=Mdata$Mean[seq(0,42,2)] #imp
-b=paste0(Mdata.IMP)
-b=c("0.00","0.16","0.10","0.08","0.09","0.00","-0.06","0.00","-0.02","-0.07","-0.02","0.12","0.10","0.00","0.17","0.00","0.00","-0.10","0.04","0.03","-0.01")
-Mdata=transform(Mdata, "95% CI"=paste(Lower, Upper, sep="-"))
-e=paste0(Mdata$X95..CI)
-e=c("(0.00,0.00)","(0.00,0.00)","(-0.19,0.07)","(0.01,0.33)","(-0.13,0.11)","(-0.04,0.25)","(-0.16,0.17)","(-0.05,0.21)","(-0.12,0.18)",
-  "(-0.08,0.27)","(0.00,0.00)","(0.00,0.00)","(-0.04,0.13)","(-0.14,0.01)","(0.00,0.00)","(0.00,0.00)","(-0.19,0.05)","(-0.12,0.09)",
-  "(-0.19,0.07)","(-0.19,0.06)","(-0.17,0.13)","(-0.18,0.14)","(-0.27,0.25)","(-0.35,0.10)","(-1.32,1.46)","(-0.40,0.61)","(0.00,0.00)",       
-   "(0.00,0.00)","(-0.31,0.42)","(-0.06,0.40)","(0.00,0.02)","(-0.01,0.01)","(0.00,0.00)","(0.00,0.00)","(-0.17,0.04)","(-0.30,0.09)", 
-   "(-0.10,0.11)","(-0.07,0.15)","(-0.07,0.18)","(-0.16,0.22)","(-0.09,0.29)","(-0.19,0.18)")
-e.I=e[seq(0,42,2)]
-e.C=e[seq(1,42,2)]
-
-tabletext=cbind(c("Variable",lbl),c("Imputed est.",b),c("95% CI",e.I),c("C c est.",a),c("95% CI",e.C))
-
-png("high_res_ks3.png",width=5000,height=2500,res=300)
-forestplot(tabletext,hrzl_lines = gpar(col="#444444"), fn.ci_norm = c(fpDrawNormalCI, fpDrawCircleCI),
-           legend = c("Complete case","Imputed"),
-           mean = cbind(c(NA,Mdata$Mean[Mdata$Analyses == "Complete case"]), 
-                        c(NA,Mdata$Mean[Mdata$Analyses == "Imputed"])),
-           lower = cbind(c(NA,Mdata$Lower[Mdata$Analyses == "Complete case"]), 
-                         c(NA,Mdata$Lower[Mdata$Analyses == "Imputed"])),
-           upper = cbind(c(NA,Mdata$Upper[Mdata$Analyses == "Complete case"]), 
-                         c(NA,Mdata$Upper[Mdata$Analyses == "Imputed"])),
-           col=fpColors(box=c("turquoise2", "red2"),line=c("turquoise2", "red2"),
-                        zero=c("black")),cex = 1,
-           boxsize = 0.25,
-           line.margin = 0.25,
-           xlab = "Standardised effect estimate (95% CI)")
-dev.off()
-
-##heritability
-
-Mdata=read_excel("O:/Documents/Mini-project week 26+/heritability_FP.xlsx")
-Mdata=hrtblty
-lbl=c("KS2","KS3")
-Mdata.adj=round(Mdata$Mean[seq(0,4,2)],3) #adjusted
-a=paste0(Mdata.adj)
-Mdata.unadj=round(Mdata$Mean[seq(1,4,2)],3) #unadjusted
-b=paste0(Mdata.unadj)
-
-Mdata=transform(Mdata, "95% CI"=paste(Lower, Upper, sep="-"))
-e=paste0(Mdata$X95..CI)
-e=c("(-0.023,0.277)","(0.006,0.345)","(-0.053,0.361)","(-0.150,0.315)")
-e.U=e[seq(1,4,2)]
-e.A=e[seq(0,4,2)]
-
-tabletext=cbind(c("Key stage",lbl),c("Unadjusted est.",b),c("95% CI",e.U),c("Adjusted est.",a),c("95% CI",e.A))
-
-png("high_res_herit_2.png",width=5000,height=2000,res=300)
+png("KS2_FP_2021.png",width=5000,height=2500,res=300)
 forestplot(tabletext,
-           legend = c("Adjusted","Unadjusted"),fn.ci_norm = c(fpDrawNormalCI, fpDrawCircleCI),
-           title = "Heritability plot",
-           mean = cbind(c(NA,Mdata$Mean[Mdata$`Analyses` == "Adjusted"]), 
-                        c(NA,Mdata$Mean[Mdata$`Analyses` == "Unadjusted"])),
-           lower = cbind(c(NA,Mdata$Lower[Mdata$`Analyses` == "Adjusted"]), 
-                         c(NA,Mdata$Lower[Mdata$`Analyses` == "Unadjusted"])),
-           upper = cbind(c(NA,Mdata$Upper[Mdata$`Analyses` == "Adjusted"]), 
-                        c(NA,Mdata$Upper[Mdata$`Analyses` == "Unadjusted"])),
-           col=fpColors(box=c("turquoise", "red2"),line=c("turquoise2", "red2"),
-                        zero=c("black")),
-           boxsize = 0.1,           line.margin = 0.25,
-           xlab = "Standardised effect estimate")
+           hrzl_lines = list("2"=gpar(lty=1),"7"=gpar(lty=2,columns=1:5),"9"=gpar(lty=2,columns=1:5),
+                             "15"=gpar(lty=2,columns=1:5),"17"=gpar(lty=2,columns=1:5),"18"=gpar(lty=2,columns=1:5),
+                             "23"=gpar(lty=2,columns=1:5),"25"=gpar(lty=2,columns=1:5),"29"=gpar(lty=2,columns=1:5),
+                            "30"=gpar(lty=1,columns=1:5)),
+           fn.ci_norm = c(fpDrawNormalCI, fpDrawCircleCI),
+           legend = c("Complete case","Imputed"),
+           mean = cbind(c(NA,KS2$Mean[KS2$Analyses == "Complete case"]), 
+                        c(NA,KS2$Mean[KS2$Analyses == "Imputed"])),
+           lower = cbind(c(NA,KS2$Lower[KS2$Analyses == "Complete case"]), 
+                         c(NA,KS2$Lower[KS2$Analyses == "Imputed"])),
+           upper = cbind(c(NA,KS2$Upper[KS2$Analyses == "Complete case"]), 
+                         c(NA,KS2$Upper[KS2$Analyses == "Imputed"])),
+           col=fpColors(box=c("#4393C3", "red2"),line=c("#4393C3", "red2"),
+                        zero=c("black")),cex = 1,
+           boxsize = 0.25,
+           line.margin = 0.25,
+           xlab = "Standardised effect estimate (95% CI)")
 dev.off()
 
-##heritability2
+## KS3
 
-Mdata=read_excel("O:/Documents/Mini-project week 26+/heritability_FP.xlsx")
-Mdata=as.data.frame(Mdata)
-lbl=c("KS2","KS3")
-Mdata=Mdata[-c(1,3),]
-Mdata$Mean=round(Mdata$Mean,3)
-Mdata=transform(Mdata, "95% CI"=paste(Lower, Upper, sep="-"))
-e=paste0(Mdata$X95..CI)
-e=c("(0.006,0.345)","(-0.150,0.315)")
+KS3=as.data.frame(KS3)
+labels=as.vector(KS3$Variable)[c(T,F)]
+KS3.CC=KS3$Mean[seq(1,42,2)]
+a=as.vector(paste0(KS3.CC))
+KS3.IMP=KS3$Mean[seq(0,42,2)]  #IMP
+b=as.vector(paste0(KS3.IMP))
+KS3=transform(KS3, "95% CI"=paste0("(",paste(Lower, Upper, sep=", "),paste0(")")))
+e=KS3$X95..CI
+e.C=e[seq(1,42,2)]
+e.I=e[seq(0,42,2)]
 
-tabletext=cbind(c("Key stage",lbl),c("Adjusted est.",Mdata$Mean),c("95% CI",e))
+tabletext=cbind(c("Variable",labels),c("Imputed est.",b),c("95% CI",e.I),c("C c est.",a),c("95% CI",e.C))
 
-png("high_res_herit_2.png",width=5000,height=2000,res=300)
-forestplot(tabletext,title = "Heritability plot",
-           mean = cbind(c(NA,Mdata$Mean)),
-           lower = cbind(c(NA,Mdata$Lower)),
-           upper = cbind(c(NA,Mdata$Upper)),
-           col=fpColors(box="red",line="red",
-                        zero=c("black")),
-           boxsize = 0.1,           line.margin = 0.25,
-           xlab = "Standardised effect estimate",txt_gp=fpTxtGp(cex=1.9))
+png("KS3_FP_2021.png",width=5000,height=2500,res=300)
+forestplot(tabletext, 
+           hrzl_lines = list("2"=gpar(lty=1),"7"=gpar(lty=2,columns=1:5),"9"=gpar(lty=2,columns=1:5),
+                             "15"=gpar(lty=2,columns=1:5),"17"=gpar(lty=2,columns=1:5),"18"=gpar(lty=2,columns=1:5),
+                             "23"=gpar(lty=1,columns=1:5)),
+           fn.ci_norm = c(fpDrawNormalCI, fpDrawCircleCI),
+           legend = c("Complete case","Imputed"),
+           mean = cbind(c(NA,KS3$Mean[KS3$Analyses == "Complete case"]), 
+                        c(NA,KS3$Mean[KS3$Analyses == "Imputed"])),
+           lower = cbind(c(NA,KS3$Lower[KS3$Analyses == "Complete case"]), 
+                         c(NA,KS3$Lower[KS3$Analyses == "Imputed"])),
+           upper = cbind(c(NA,KS3$Upper[KS3$Analyses == "Complete case"]), 
+                         c(NA,KS3$Upper[KS3$Analyses == "Imputed"])),
+           col=fpColors(box=c("#4393C3", "red2"),line=c("#4393C3", "red2"),
+                        zero=c("black")),cex = 1,
+           boxsize = 0.25,
+           line.margin = 0.25,
+           xlab = "Standardised effect estimate (95% CI)")
 dev.off()
